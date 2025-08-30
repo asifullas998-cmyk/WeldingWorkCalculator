@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 const lineItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0."),
+  kgs: z.coerce.number().optional(),
   unitPrice: z.coerce.number().min(0, "Unit price cannot be negative."),
 });
 
@@ -60,7 +61,7 @@ export function InvoiceGenerator() {
       welderName: "Asifulla S",
       clientName: "",
       jobDescription: "",
-      lineItems: [{ description: "", quantity: 1, unitPrice: 0 }],
+      lineItems: [{ description: "", quantity: 1, kgs: undefined, unitPrice: 0 }],
     },
   });
 
@@ -154,7 +155,7 @@ export function InvoiceGenerator() {
                 <Label className="text-lg font-semibold text-primary">Bill Items</Label>
                 <div className="mt-2 space-y-4">
                   {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-10 gap-2 items-start">
+                    <div key={field.id} className="grid grid-cols-12 gap-2 items-start">
                       <FormField
                         control={form.control}
                         name={`lineItems.${index}.description`}
@@ -174,6 +175,18 @@ export function InvoiceGenerator() {
                           <FormItem className="col-span-2">
                             <FormControl>
                               <Input type="number" placeholder="Qty" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                       <FormField
+                        control={form.control}
+                        name={`lineItems.${index}.kgs`}
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormControl>
+                              <Input type="number" placeholder="Kgs (Optional)" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -212,7 +225,7 @@ export function InvoiceGenerator() {
                   variant="outline"
                   size="sm"
                   className="mt-4"
-                  onClick={() => append({ description: "", quantity: 1, unitPrice: 0 })}
+                  onClick={() => append({ description: "", quantity: 1, kgs: undefined, unitPrice: 0 })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Item
@@ -267,6 +280,7 @@ export function InvoiceGenerator() {
                         <TableRow className="bg-gray-100">
                             <TableHead className="text-black font-bold">Description</TableHead>
                             <TableHead className="text-black font-bold text-center">Quantity</TableHead>
+                            <TableHead className="text-black font-bold text-center">Kgs</TableHead>
                             <TableHead className="text-black font-bold text-center">Unit Price</TableHead>
                             <TableHead className="text-black font-bold text-right">Amount</TableHead>
                         </TableRow>
@@ -276,6 +290,7 @@ export function InvoiceGenerator() {
                             <TableRow key={index}>
                             <TableCell>{item.description}</TableCell>
                             <TableCell className="text-center">{item.quantity}</TableCell>
+                            <TableCell className="text-center">{item.kgs || "-"}</TableCell>
                             <TableCell className="text-center">₹{item.unitPrice.toFixed(2)}</TableCell>
                             <TableCell className="text-right">₹{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
                             </TableRow>
