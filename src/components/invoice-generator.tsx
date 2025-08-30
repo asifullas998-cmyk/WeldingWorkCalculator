@@ -61,7 +61,7 @@ export function InvoiceGenerator() {
       welderName: "Asifulla S",
       clientName: "",
       jobDescription: "",
-      lineItems: [{ description: "", quantity: 1, kgs: undefined, unitPrice: 0 }],
+      lineItems: [{ description: "", quantity: 1, kgs: '' as any, unitPrice: 0 }],
     },
   });
 
@@ -225,7 +225,7 @@ export function InvoiceGenerator() {
                   variant="outline"
                   size="sm"
                   className="mt-4"
-                  onClick={() => append({ description: "", quantity: 1, kgs: undefined, unitPrice: 0 })}
+                  onClick={() => append({ description: "", quantity: 1, kgs: '' as any, unitPrice: 0 })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Item
