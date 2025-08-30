@@ -61,7 +61,7 @@ export function InvoiceGenerator() {
       welderName: "Asifulla S",
       clientName: "",
       jobDescription: "",
-      lineItems: [{ description: "", quantity: 1, kgs: '' as any, unitPrice: 0 }],
+      lineItems: [{ description: "", quantity: 1, kgs: "" as any, unitPrice: 0 }],
     },
   });
 
@@ -71,8 +71,15 @@ export function InvoiceGenerator() {
   });
 
   const watchLineItems = form.watch("lineItems");
+  
+  const calculateLineItemTotal = (item: any) => {
+    const multiplier = (item.kgs > 0 ? item.kgs : item.quantity) || 0;
+    const price = item.unitPrice || 0;
+    return multiplier * price;
+  };
+
   const subtotal = watchLineItems.reduce(
-    (acc, item) => acc + (item.quantity || 0) * (item.unitPrice || 0),
+    (acc, item) => acc + calculateLineItemTotal(item),
     0
   );
 
@@ -206,7 +213,7 @@ export function InvoiceGenerator() {
                       />
                       <div className="col-span-2 flex items-center gap-2">
                         <Label className="font-bold text-right w-full pt-2">
-                            ₹{(watchLineItems[index]?.quantity * watchLineItems[index]?.unitPrice || 0).toFixed(2)}
+                            ₹{calculateLineItemTotal(watchLineItems[index] || {}).toFixed(2)}
                         </Label>
                         <Button
                           type="button"
@@ -292,7 +299,7 @@ export function InvoiceGenerator() {
                             <TableCell className="text-center">{item.quantity}</TableCell>
                             <TableCell className="text-center">{item.kgs || "-"}</TableCell>
                             <TableCell className="text-center">₹{item.unitPrice.toFixed(2)}</TableCell>
-                            <TableCell className="text-right">₹{(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                            <TableCell className="text-right">₹{calculateLineItemTotal(item).toFixed(2)}</TableCell>
                             </TableRow>
                         ))}
                         </TableBody>
