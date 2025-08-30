@@ -5,6 +5,8 @@ import { useState, useRef } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   Card,
   CardContent,
@@ -32,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle, Trash, Printer } from "lucide-react";
+import { PlusCircle, Trash, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const lineItemSchema = z.object({
@@ -53,6 +55,7 @@ type InvoiceFormData = z.infer<typeof invoiceSchema>;
 
 export function InvoiceGenerator() {
   const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<InvoiceFormData>({
@@ -83,25 +86,49 @@ export function InvoiceGenerator() {
     0
   );
 
-  const handlePrint = () => {
-    const printContent = invoiceRef.current;
-    if (printContent) {
-      const originalContents = document.body.innerHTML;
-      const printContents = printContent.innerHTML;
-      document.body.innerHTML = printContents;
-      window.print();
-      document.body.innerHTML = originalContents;
-      // Re-add the print button event listener
-      window.location.reload();
+  const handleDownloadPdf = async () => {
+    const invoiceElement = invoiceRef.current;
+    if (!invoiceElement) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not find the invoice to download.',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const canvas = await html2canvas(invoiceElement, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('invoice.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        variant: 'destructive',
+        title: 'PDF Generation Failed',
+        description: 'An error occurred while creating the PDF.',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   function onSubmit(data: InvoiceFormData) {
     toast({
         title: "Invoice Ready!",
-        description: "You can now print your invoice using the 'Print Invoice' button.",
+        description: "You can now download your invoice as a PDF.",
     });
-    // The form data is now captured in the state. The user can proceed to print.
+    // The form data is now captured in the state. The user can proceed to download.
   }
 
   return (
@@ -271,11 +298,10 @@ export function InvoiceGenerator() {
       
       {form.formState.isSubmitSuccessful && (
         <div className="space-y-4">
-            <Button onClick={handlePrint} size="lg" className="w-full md:w-auto">
-                <Printer className="mr-2 h-5 w-5" /> Print Invoice
+            <Button onClick={handleDownloadPdf} size="lg" className="w-full md:w-auto" disabled={isSaving}>
+                <Download className="mr-2 h-5 w-5" /> {isSaving ? "Downloading..." : "Download PDF"}
             </Button>
-            <div id="invoice-preview" ref={invoiceRef} className="p-8 border rounded-lg bg-white text-black shadow-lg hidden print:block">
-                <style>{`@media print { body { -webkit-print-color-adjust: exact; } }`}</style>
+            <div id="invoice-preview" ref={invoiceRef} className="p-8 border rounded-lg bg-white text-black shadow-lg">
                 <div className="space-y-8">
                     <div className="flex justify-between items-start">
                         <div>
@@ -336,3 +362,5 @@ export function InvoiceGenerator() {
     </div>
   );
 }
+
+    
