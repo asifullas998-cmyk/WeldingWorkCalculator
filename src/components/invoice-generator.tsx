@@ -44,8 +44,8 @@ const lineItemSchema = z.object({
 
 const invoiceSchema = z.object({
   welderName: z.string().min(1, "Welder name is required."),
-  clientName: z.string().min(1, "Client name is required."),
-  jobDescription: z.string().min(1, "Job description is required."),
+  clientName: z.string().optional(),
+  jobDescription: z.string().optional(),
   lineItems: z.array(lineItemSchema).min(1, "Please add at least one item."),
 });
 
@@ -336,5 +336,3 @@ export function InvoiceGenerator() {
     </div>
   );
 }
-
-    
