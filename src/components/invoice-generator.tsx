@@ -160,6 +160,13 @@ export function InvoiceGenerator() {
 
               <div>
                 <Label className="text-lg font-semibold text-primary">Bill Items</Label>
+                <div className="mt-4 hidden md:grid grid-cols-12 gap-2 px-1 text-sm font-medium text-muted-foreground">
+                  <div className="col-span-4">Description</div>
+                  <div className="col-span-2">Qty</div>
+                  <div className="col-span-2">Kgs</div>
+                  <div className="col-span-2">Price/Unit</div>
+                  <div className="col-span-2 text-right">Amount</div>
+                </div>
                 <div className="mt-2 space-y-4">
                   {fields.map((field, index) => (
                     <div key={field.id} className="grid grid-cols-12 gap-2 items-start">
@@ -167,7 +174,8 @@ export function InvoiceGenerator() {
                         control={form.control}
                         name={`lineItems.${index}.description`}
                         render={({ field }) => (
-                          <FormItem className="col-span-4">
+                          <FormItem className="col-span-12 md:col-span-4">
+                            <FormLabel className="md:hidden">Description</FormLabel>
                             <FormControl>
                               <Input placeholder="Item description" {...field} />
                             </FormControl>
@@ -179,7 +187,8 @@ export function InvoiceGenerator() {
                         control={form.control}
                         name={`lineItems.${index}.quantity`}
                         render={({ field }) => (
-                          <FormItem className="col-span-2">
+                          <FormItem className="col-span-6 md:col-span-2">
+                            <FormLabel className="md:hidden">Quantity</FormLabel>
                             <FormControl>
                               <Input type="number" placeholder="Qty" {...field} />
                             </FormControl>
@@ -191,7 +200,8 @@ export function InvoiceGenerator() {
                         control={form.control}
                         name={`lineItems.${index}.kgs`}
                         render={({ field }) => (
-                          <FormItem className="col-span-2">
+                          <FormItem className="col-span-6 md:col-span-2">
+                             <FormLabel className="md:hidden">Kgs (Optional)</FormLabel>
                             <FormControl>
                               <Input type="number" placeholder="Kgs (Optional)" {...field} />
                             </FormControl>
@@ -203,7 +213,8 @@ export function InvoiceGenerator() {
                         control={form.control}
                         name={`lineItems.${index}.unitPrice`}
                         render={({ field }) => (
-                          <FormItem className="col-span-2">
+                          <FormItem className="col-span-6 md:col-span-2">
+                            <FormLabel className="md:hidden">Price/Unit</FormLabel>
                             <FormControl>
                               <Input type="number" placeholder="Price/Unit" {...field} />
                             </FormControl>
@@ -211,7 +222,7 @@ export function InvoiceGenerator() {
                           </FormItem>
                         )}
                       />
-                      <div className="col-span-2 flex items-center gap-2">
+                      <div className="col-span-6 md:col-span-2 flex items-center gap-2">
                         <Label className="font-bold text-right w-full pt-2">
                             ₹{calculateLineItemTotal(watchLineItems[index] || {}).toFixed(2)}
                         </Label>
@@ -325,3 +336,5 @@ export function InvoiceGenerator() {
     </div>
   );
 }
+
+    
