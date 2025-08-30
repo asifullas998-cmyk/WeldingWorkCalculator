@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 export const metadata: Metadata = {
   title: 'WeldEase Planner',
   description: 'An easy pipe welding calculator for planning rod coverage and spacing.',
+  authors: [{ name: 'Asifulla S' }],
 };
 
 export default function RootLayout({
