@@ -22,9 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ResultsTable } from "./results-table"
-import { ResultsChart } from "./results-chart"
 import { useToast } from "@/hooks/use-toast"
-import type { ChartConfig } from "@/components/ui/chart"
 import { Download, Ruler, Share2, Sparkles } from "lucide-react"
 
 type SpacingPlan = {
@@ -36,9 +34,6 @@ type SpacingPlan = {
 type CalculationResult = {
   coverage: number
   plan: SpacingPlan[]
-  chartData: any[]
-  chartConfig: ChartConfig
-  totalLength: number
 }
 
 export function WeldingCalculator() {
@@ -97,8 +92,6 @@ export function WeldingCalculator() {
     const coverageMm = lengthInMm / rods
 
     const plan: SpacingPlan[] = []
-    const chartData: any[] = [{ name: "Pipe", pipeLength: length }];
-    const chartConfig: ChartConfig = {};
 
     for (let i = 1; i <= rods; i++) {
       const startMm = (i - 1) * coverageMm
@@ -109,30 +102,11 @@ export function WeldingCalculator() {
         start: startMm / unitConversions[unit],
         end: endMm / unitConversions[unit],
       })
-      
-      const key = `rod${i}`
-      chartData[0][key] = coverageMm / unitConversions[unit]
-      
-      const chartColors = [
-        "hsl(var(--chart-1))",
-        "hsl(var(--chart-2))",
-        "hsl(var(--chart-3))",
-        "hsl(var(--chart-4))",
-        "hsl(var(--chart-5))",
-      ];
-
-      chartConfig[key] = {
-        label: `Rod ${i}`,
-        color: chartColors[(i - 1) % chartColors.length],
-      }
     }
 
     setResult({
       coverage: coverageMm / unitConversions[unit],
       plan,
-      chartData,
-      chartConfig,
-      totalLength: length
     })
   }
   
@@ -323,14 +297,11 @@ export function WeldingCalculator() {
             </Card>
 
           <ResultsTable plan={result.plan} unit={unit} />
-          <ResultsChart
-            chartData={result.chartData}
-            chartConfig={result.chartConfig}
-            unit={unit}
-            pipeLength={result.totalLength}
-          />
         </div>
       )}
+      <footer className="text-center text-sm text-muted-foreground py-4">
+        <p>Developed by Asifulla S</p>
+      </footer>
     </div>
   )
 }
