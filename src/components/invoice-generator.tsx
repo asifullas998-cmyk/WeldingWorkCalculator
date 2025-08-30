@@ -203,7 +203,7 @@ export function InvoiceGenerator() {
                           <FormItem className="col-span-6 md:col-span-2">
                              <FormLabel className="md:hidden">Kgs (Optional)</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="Kgs (Optional)" {...field} />
+                              <Input type="number" placeholder="Kgs (Optional)" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -309,7 +309,7 @@ export function InvoiceGenerator() {
                             <TableCell>{item.description}</TableCell>
                             <TableCell className="text-center">{item.quantity}</TableCell>
                             <TableCell className="text-center">{item.kgs || "-"}</TableCell>
-                            <TableCell className="text-center">₹{item.unitPrice.toFixed(2)}</TableCell>
+                            <TableCell className="text-center">₹{Number(item.unitPrice).toFixed(2)}</TableCell>
                             <TableCell className="text-right">₹{calculateLineItemTotal(item).toFixed(2)}</TableCell>
                             </TableRow>
                         ))}
