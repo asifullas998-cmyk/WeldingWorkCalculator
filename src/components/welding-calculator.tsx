@@ -24,7 +24,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ResultsTable } from "./results-table"
 import { useToast } from "@/hooks/use-toast"
-import { Download, Ruler, Share2, Sparkles, SlidersHorizontal, Clock, DollarSign } from "lucide-react"
+import { Download, Ruler, Share2, Sparkles, SlidersHorizontal, Clock, DollarSign, FileText } from "lucide-react"
+import Link from "next/link"
 
 type SpacingPlan = {
   rod: number
@@ -486,6 +487,14 @@ export function WeldingCalculator() {
                 </form>
               </TabsContent>
             </Tabs>
+            <div className="mt-6 border-t pt-6 text-center">
+              <Button asChild variant="secondary" size="lg">
+                <Link href="/invoice">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Create a Bill / Invoice
+                </Link>
+              </Button>
+            </div>
         </CardContent>
       </Card>
 
@@ -577,5 +586,3 @@ export function WeldingCalculator() {
     </div>
   )
 }
-
-    
