@@ -243,7 +243,7 @@ export function WeldingCalculator() {
                     <SelectItem value="cm">Centimeters (cm)</SelectItem>
                     <SelectItem value="m">Meters (m)</SelectItem>
                     <SelectItem value="in">Inches (in)</SelectItem>
-                    <SelectItem value="ft">Feet (ft)</SelectItem>
+                    <SelectItem value="ft">Adi (ft)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
