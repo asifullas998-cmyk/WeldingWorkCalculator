@@ -108,9 +108,18 @@ export function WeldingCalculator() {
       
       const key = `rod${i}`
       chartData[0][key] = coverageMm / unitConversions[unit]
+      
+      const chartColors = [
+        "hsl(var(--chart-1))",
+        "hsl(var(--chart-2))",
+        "hsl(var(--chart-3))",
+        "hsl(var(--chart-4))",
+        "hsl(var(--chart-5))",
+      ];
+
       chartConfig[key] = {
         label: `Rod ${i}`,
-        color: i % 2 === 0 ? "hsl(var(--accent))" : "hsl(var(--primary))",
+        color: chartColors[(i - 1) % chartColors.length],
       }
     }
 

@@ -64,13 +64,18 @@ export function ResultsChart({ chartData, chartConfig, unit, pipeLength }: Resul
                 />
               }
             />
-            {Object.keys(chartConfig).map((key) => (
+            {Object.keys(chartConfig).map((key, index) => (
               <Bar
                 key={key}
                 dataKey={key}
                 stackId="a"
                 fill={`var(--color-${key})`}
-                radius={0}
+                radius={[
+                  index === 0 ? 4 : 0, 
+                  index === Object.keys(chartConfig).length - 1 ? 4 : 0, 
+                  index === Object.keys(chartConfig).length - 1 ? 4 : 0, 
+                  index === 0 ? 4 : 0
+                ]}
               />
             ))}
           </BarChart>
