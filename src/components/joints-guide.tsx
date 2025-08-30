@@ -1,8 +1,8 @@
+
 "use client";
 
 import Image from "next/image";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 
 const joints = [
   {
@@ -69,47 +69,42 @@ const joints = [
 
 export function JointsGuide() {
   return (
-    <Card className="w-full max-w-5xl">
-      <CardHeader>
-        <CardTitle className="text-3xl font-bold text-primary">Welding Joints Guide</CardTitle>
-        <CardDescription className="text-lg">
+    <div className="w-full max-w-5xl space-y-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-primary">Welding Joints Guide</h1>
+        <p className="text-lg text-muted-foreground mt-2">
           A quick reference for common welding joint types, angles, and positions.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Accordion type="single" collapsible className="w-full">
-          {joints.map((joint, index) => (
-            <AccordionItem value={`item-${index}`} key={joint.name}>
-              <AccordionTrigger className="text-xl font-semibold hover:no-underline">
-                {joint.name}
-              </AccordionTrigger>
-              <AccordionContent className="p-2 sm:p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                    <div className="space-y-4">
-                        <p className="mb-4 text-base font-medium">{joint.description}</p>
-                        <ul className="space-y-2">
-                            {Object.entries(joint.details).map(([key, value]) => (
-                                <li key={key}>
-                                    <strong className="text-primary">{key}:</strong> {value}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="w-full aspect-video relative rounded-md overflow-hidden bg-primary/10 flex items-center justify-center">
-                        <Image 
-                            src={joint.imageUrl}
-                            alt={`${joint.name} diagram`}
-                            fill
-                            className="object-cover"
-                            data-ai-hint={joint.imageHint}
-                        />
-                    </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {joints.map((joint) => (
+          <Card key={joint.name} className="flex flex-col">
+            <CardHeader>
+              <div className="w-full aspect-video relative rounded-md overflow-hidden bg-primary/10 mb-4">
+                  <Image 
+                      src={joint.imageUrl}
+                      alt={`${joint.name} diagram`}
+                      fill
+                      className="object-cover"
+                      data-ai-hint={joint.imageHint}
+                  />
+              </div>
+              <CardTitle className="text-xl font-semibold">{joint.name}</CardTitle>
+              <CardDescription>{joint.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <ul className="space-y-2 text-sm">
+                  {Object.entries(joint.details).map(([key, value]) => (
+                      <li key={key}>
+                          <strong className="text-primary">{key}:</strong> {value}
+                      </li>
+                  ))}
+              </ul>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 }
