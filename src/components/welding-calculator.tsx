@@ -204,7 +204,10 @@ export function WeldingCalculator() {
             files: [file],
           });
         } catch (error) {
-            if (error instanceof DOMException && error.name !== 'AbortError') {
+            if (error instanceof DOMException && (error.name === 'AbortError' || error.name === 'NotAllowedError')) {
+                // User cancelled the share sheet or permission was denied
+                // Do not show an error toast in this case
+            } else if (error instanceof Error) {
                 console.error("Error sharing:", error);
                 toast({
                   variant: "destructive",
