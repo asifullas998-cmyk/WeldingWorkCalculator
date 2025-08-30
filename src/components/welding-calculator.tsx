@@ -51,6 +51,8 @@ export function WeldingCalculator() {
     mm: 1,
     cm: 10,
     m: 1000,
+    in: 25.4,
+    ft: 304.8,
   }
 
   const handleCalculate = (e: React.FormEvent) => {
@@ -158,6 +160,8 @@ export function WeldingCalculator() {
                     <SelectItem value="mm">Millimeters (mm)</SelectItem>
                     <SelectItem value="cm">Centimeters (cm)</SelectItem>
                     <SelectItem value="m">Meters (m)</SelectItem>
+                    <SelectItem value="in">Inches (in)</SelectItem>
+                    <SelectItem value="ft">Feet (ft)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
