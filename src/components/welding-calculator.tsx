@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ResultsTable } from "./results-table"
 import { useToast } from "@/hooks/use-toast"
-import { Download, Ruler, Share2, Sparkles, SlidersHorizontal, Clock } from "lucide-react"
+import { Download, Ruler, Share2, Sparkles, SlidersHorizontal, Clock, DollarSign } from "lucide-react"
 
 type SpacingPlan = {
   rod: number
@@ -42,6 +42,13 @@ type EstimationResult = {
   time: number;
 }
 
+type CostResult = {
+    materialCost: number;
+    laborCost: number;
+    powerCost: number;
+    totalCost: number;
+}
+
 export function WeldingCalculator() {
   // State for Spacing Calculator
   const [pipeLength, setPipeLength] = useState("")
@@ -54,6 +61,15 @@ export function WeldingCalculator() {
   const [materialThickness, setMaterialThickness] = useState('');
   const [jointType, setJointType] = useState('butt');
   const [estimationResult, setEstimationResult] = useState<EstimationResult | null>(null);
+
+  // State for Cost Estimator
+  const [numRodsForCost, setNumRodsForCost] = useState('');
+  const [costPerRod, setCostPerRod] = useState('');
+  const [weldingTime, setWeldingTime] = useState('');
+  const [laborCost, setLaborCost] = useState('');
+  const [powerConsumption, setPowerConsumption] = useState('');
+  const [powerCost, setPowerCost] = useState('');
+  const [costResult, setCostResult] = useState<CostResult | null>(null);
 
 
   // Common state
@@ -172,7 +188,45 @@ export function WeldingCalculator() {
       rods: rodsNeeded,
       time: timeMinutes,
     });
+    // Pre-fill cost estimator inputs
+    setNumRodsForCost(String(rodsNeeded));
+    setWeldingTime(String(+(timeMinutes / 60).toFixed(2)));
   };
+
+  const handleCostCalculate = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCostResult(null);
+
+    const numRods = parseFloat(numRodsForCost);
+    const rodCost = parseFloat(costPerRod);
+    const timeHours = parseFloat(weldingTime);
+    const hourlyRate = parseFloat(laborCost);
+    const kwh = parseFloat(powerConsumption);
+    const kwhCost = parseFloat(powerCost);
+
+    const isValid = (val: number) => !isNaN(val) && val >= 0;
+
+    if (!isValid(numRods) || !isValid(rodCost) || !isValid(timeHours) || !isValid(hourlyRate) || !isValid(kwh) || !isValid(kwhCost)) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Input',
+        description: 'Please enter valid, non-negative numbers for all cost fields.',
+      });
+      return;
+    }
+
+    const materialCost = numRods * rodCost;
+    const laborCostVal = timeHours * hourlyRate;
+    const powerCostVal = kwh * kwhCost;
+    const totalCost = materialCost + laborCostVal + powerCostVal;
+
+    setCostResult({
+        materialCost,
+        laborCost: laborCostVal,
+        powerCost: powerCostVal,
+        totalCost,
+    });
+  }
   
   const handleSavePdf = async () => {
     if (!resultsRef.current) return;
@@ -283,9 +337,10 @@ export function WeldingCalculator() {
         </CardHeader>
         <CardContent>
             <Tabs defaultValue="spacing-calculator">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="spacing-calculator">Spacing Calculator</TabsTrigger>
-                <TabsTrigger value="material-estimator">Material Estimator</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="spacing-calculator">Spacing</TabsTrigger>
+                <TabsTrigger value="material-estimator">Material</TabsTrigger>
+                <TabsTrigger value="cost-estimator">Cost</TabsTrigger>
               </TabsList>
               
               <TabsContent value="spacing-calculator" className="pt-6">
@@ -383,12 +438,59 @@ export function WeldingCalculator() {
                   </Button>
                 </form>
               </TabsContent>
+
+              <TabsContent value="cost-estimator" className="pt-6">
+                <form onSubmit={handleCostCalculate} className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-primary">Material Costs</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div className="space-y-2">
+                         <Label htmlFor="num-rods-cost" className="font-medium">Number of Rods</Label>
+                         <Input id="num-rods-cost" type="number" placeholder="e.g., 50" value={numRodsForCost} onChange={(e) => setNumRodsForCost(e.target.value)} step="1" />
+                       </div>
+                       <div className="space-y-2">
+                         <Label htmlFor="cost-per-rod" className="font-medium">Cost per Rod</Label>
+                         <Input id="cost-per-rod" type="number" placeholder="e.g., 15" value={costPerRod} onChange={(e) => setCostPerRod(e.target.value)} step="any" />
+                       </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-primary">Labor Costs</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div className="space-y-2">
+                         <Label htmlFor="welding-time" className="font-medium">Welding Time (hours)</Label>
+                         <Input id="welding-time" type="number" placeholder="e.g., 8" value={weldingTime} onChange={(e) => setWeldingTime(e.target.value)} step="any" />
+                       </div>
+                       <div className="space-y-2">
+                         <Label htmlFor="labor-cost" className="font-medium">Labor Cost per Hour</Label>
+                         <Input id="labor-cost" type="number" placeholder="e.g., 500" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} step="any" />
+                       </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-primary">Power Costs</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div className="space-y-2">
+                         <Label htmlFor="power-consumption" className="font-medium">Power Consumption (kWh)</Label>
+                         <Input id="power-consumption" type="number" placeholder="e.g., 10" value={powerConsumption} onChange={(e) => setPowerConsumption(e.target.value)} step="any" />
+                       </div>
+                       <div className="space-y-2">
+                         <Label htmlFor="power-cost" className="font-medium">Cost per kWh</Label>
+                         <Input id="power-cost" type="number" placeholder="e.g., 8" value={powerCost} onChange={(e) => setPowerCost(e.target.value)} step="any" />
+                       </div>
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full md:w-auto text-base font-semibold" size="lg">
+                    <DollarSign className="mr-2 h-5 w-5" /> Calculate Cost
+                  </Button>
+                </form>
+              </TabsContent>
             </Tabs>
         </CardContent>
       </Card>
 
       <div ref={resultsRef} className="space-y-8 p-4 bg-background">
-        {(spacingResult || estimationResult) && (
+        {(spacingResult || estimationResult || costResult) && (
             <div className="flex flex-wrap gap-4 justify-between items-center">
                 <CardTitle>Calculation Results</CardTitle>
                 <div className="flex gap-2">
@@ -442,6 +544,30 @@ export function WeldingCalculator() {
                 </CardContent>
             </Card>
           </div>
+        )}
+
+        {costResult && (
+            <div className="space-y-8">
+                <Card className="w-full bg-primary/10 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <DollarSign className="h-6 w-6" />
+                            Cost Estimation
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="text-xl font-semibold space-y-2">
+                            <p>Total Material Cost: <span className="text-accent font-bold">₹{costResult.materialCost.toFixed(2)}</span></p>
+                            <p>Total Labor Cost: <span className="text-accent font-bold">₹{costResult.laborCost.toFixed(2)}</span></p>
+                            <p>Total Power Cost: <span className="text-accent font-bold">₹{costResult.powerCost.toFixed(2)}</span></p>
+                        </div>
+                        <hr className="my-4 border-primary/20" />
+                        <p className="text-3xl font-bold">
+                            Total Estimated Cost: <span className="text-accent font-extrabold">₹{costResult.totalCost.toFixed(2)}</span>
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
         )}
       </div>
 
