@@ -7,7 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 const joints = [
   {
     name: "Butt Joint",
-    imageUrl: "https://picsum.photos/200/200",
+    imageUrl: "https://picsum.photos/600/400",
     imageHint: "butt weld",
     description: "A joint between two members aligned approximately in the same plane.",
     details: {
@@ -19,7 +19,7 @@ const joints = [
   },
   {
     name: "Fillet Joint",
-    imageUrl: "https://picsum.photos/200/200",
+    imageUrl: "https://picsum.photos/600/400",
     imageHint: "fillet weld",
     description: "A joint where two pieces of metal are connected at a right angle, with welding on the inside corner.",
     details: {
@@ -31,7 +31,7 @@ const joints = [
   },
   {
     name: "Lap Joint",
-    imageUrl: "https://picsum.photos/200/200",
+    imageUrl: "https://picsum.photos/600/400",
     imageHint: "lap weld",
     description: "A joint between two overlapping members.",
     details: {
@@ -43,7 +43,7 @@ const joints = [
   },
    {
     name: "Corner Joint",
-    imageUrl: "https://picsum.photos/200/200",
+    imageUrl: "https://picsum.photos/600/400",
     imageHint: "corner weld",
     description: "A joint between two members located at an angle to one another at a corner.",
     details: {
@@ -55,7 +55,7 @@ const joints = [
   },
   {
     name: "T-Joint (Tee Joint)",
-    imageUrl: "https://picsum.photos/200/200",
+    imageUrl: "https://picsum.photos/600/400",
     imageHint: "tee weld",
     description: "A joint between two members located at right angles to each other in the form of a 'T'.",
     details: {
@@ -81,29 +81,30 @@ export function JointsGuide() {
           {joints.map((joint, index) => (
             <AccordionItem value={`item-${index}`} key={joint.name}>
               <AccordionTrigger className="text-xl font-semibold hover:no-underline">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 flex-shrink-0 bg-primary/10 rounded-md flex items-center justify-center overflow-hidden">
-                    <Image 
-                      src={joint.imageUrl}
-                      alt={`${joint.name} diagram`}
-                      width={64}
-                      height={64}
-                      className="object-cover"
-                      data-ai-hint={joint.imageHint}
-                    />
-                  </div>
-                  <span>{joint.name}</span>
-                </div>
+                {joint.name}
               </AccordionTrigger>
-              <AccordionContent className="pl-4 border-l-2 border-primary/20 ml-8">
-                <p className="mb-4 text-base">{joint.description}</p>
-                <ul className="space-y-2">
-                    {Object.entries(joint.details).map(([key, value]) => (
-                        <li key={key}>
-                            <strong className="text-primary">{key}:</strong> {value}
-                        </li>
-                    ))}
-                </ul>
+              <AccordionContent className="p-2 sm:p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <div className="space-y-4">
+                        <p className="mb-4 text-base font-medium">{joint.description}</p>
+                        <ul className="space-y-2">
+                            {Object.entries(joint.details).map(([key, value]) => (
+                                <li key={key}>
+                                    <strong className="text-primary">{key}:</strong> {value}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="w-full aspect-video relative rounded-md overflow-hidden bg-primary/10 flex items-center justify-center">
+                        <Image 
+                            src={joint.imageUrl}
+                            alt={`${joint.name} diagram`}
+                            fill
+                            className="object-cover"
+                            data-ai-hint={joint.imageHint}
+                        />
+                    </div>
+                </div>
               </AccordionContent>
             </AccordionItem>
           ))}
