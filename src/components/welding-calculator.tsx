@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useRef, useState } from "react"
@@ -8,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -21,9 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ResultsTable } from "./results-table"
 import { useToast } from "@/hooks/use-toast"
-import { Download, Ruler, Share2, Sparkles } from "lucide-react"
+import { Download, Ruler, Share2, Sparkles, SlidersHorizontal, Clock } from "lucide-react"
 
 type SpacingPlan = {
   rod: number
@@ -31,16 +32,31 @@ type SpacingPlan = {
   end: number
 }
 
-type CalculationResult = {
+type SpacingCalculationResult = {
   coverage: number
   plan: SpacingPlan[]
 }
 
+type EstimationResult = {
+  rods: number;
+  time: number;
+}
+
 export function WeldingCalculator() {
+  // State for Spacing Calculator
   const [pipeLength, setPipeLength] = useState("")
   const [totalRods, setTotalRods] = useState("")
   const [unit, setUnit] = useState("mm")
-  const [result, setResult] = useState<CalculationResult | null>(null)
+  const [spacingResult, setSpacingResult] = useState<SpacingCalculationResult | null>(null)
+  
+  // State for Material Estimator
+  const [jointLength, setJointLength] = useState('');
+  const [materialThickness, setMaterialThickness] = useState('');
+  const [jointType, setJointType] = useState('butt');
+  const [estimationResult, setEstimationResult] = useState<EstimationResult | null>(null);
+
+
+  // Common state
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const { toast } = useToast()
@@ -54,9 +70,9 @@ export function WeldingCalculator() {
     ft: 304.8,
   }
 
-  const handleCalculate = (e: React.FormEvent) => {
+  const handleSpacingCalculate = (e: React.FormEvent) => {
     e.preventDefault()
-    setResult(null);
+    setSpacingResult(null);
 
     const length = parseFloat(pipeLength)
     const rods = parseInt(totalRods, 10)
@@ -104,14 +120,62 @@ export function WeldingCalculator() {
       })
     }
 
-    setResult({
+    setSpacingResult({
       coverage: coverageMm / unitConversions[unit],
       plan,
     })
   }
+
+  const handleEstimationCalculate = (e: React.FormEvent) => {
+    e.preventDefault();
+    setEstimationResult(null);
+  
+    const length = parseFloat(jointLength);
+    const thickness = parseFloat(materialThickness);
+  
+    if (isNaN(length) || length <= 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Input',
+        description: 'Please enter a valid, positive joint length.',
+      });
+      return;
+    }
+  
+    if (isNaN(thickness) || thickness <= 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Input',
+        description: 'Please enter a valid, positive material thickness.',
+      });
+      return;
+    }
+
+    // Constants for estimation (these are simplified, real-world values vary)
+    const rodLengthMm = 350; // Standard welding rod length
+    const depositionRateFactor: { [key: string]: number } = { // volume per mm of weld
+      butt: 1.2,
+      fillet: 0.5,
+      lap: 0.6,
+    };
+    const weldingSpeedMmPerMin = 150; // Average speed for estimation
+
+    const weldVolume = length * thickness * (depositionRateFactor[jointType] || 1);
+    
+    // Assume a 3.2mm rod has a volume of roughly 2800 mm^3
+    const rodVolume = 2800;
+    const rodsNeeded = Math.ceil(weldVolume / rodVolume);
+
+    const timeMinutes = (length / weldingSpeedMmPerMin);
+
+    setEstimationResult({
+      rods: rodsNeeded,
+      time: timeMinutes,
+    });
+  };
   
   const handleSavePdf = async () => {
-    if (!resultsRef.current || !result) return;
+    if (!resultsRef.current) return;
     setIsSaving(true);
   
     try {
@@ -140,7 +204,7 @@ export function WeldingCalculator() {
   };
   
   const handleShare = async () => {
-    if (!resultsRef.current || !result) return;
+    if (!resultsRef.current) return;
 
     if (!navigator.share) {
       toast({
@@ -214,63 +278,119 @@ export function WeldingCalculator() {
             WeldEase Planner
           </CardTitle>
           <CardDescription className="text-lg">
-            Easily calculate welding rod coverage for your pipe projects.
+            A toolkit for welders: calculate rod spacing and estimate materials.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleCalculate} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-              <div className="space-y-2">
-                <Label htmlFor="pipe-length" className="text-base font-medium">Pipe Length</Label>
-                <Input
-                  id="pipe-length"
-                  type="number"
-                  placeholder="e.g., 6000"
-                  value={pipeLength}
-                  onChange={(e) => setPipeLength(e.target.value)}
-                  className="text-base"
-                  step="any"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="unit" className="text-base font-medium">Unit</Label>
-                <Select value={unit} onValueChange={setUnit}>
-                  <SelectTrigger id="unit" className="w-full text-base">
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mm">Millimeters (mm)</SelectItem>
-                    <SelectItem value="cm">Centimeters (cm)</SelectItem>
-                    <SelectItem value="m">Meters (m)</SelectItem>
-                    <SelectItem value="in">Inches (in)</SelectItem>
-                    <SelectItem value="ft">Adi (ft)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="total-rods" className="text-base font-medium">Total Welding Rods</Label>
-                <Input
-                  id="total-rods"
-                  type="number"
-                  placeholder="e.g., 12"
-                  value={totalRods}
-                  onChange={(e) => setTotalRods(e.target.value)}
-                  className="text-base"
-                  step="1"
-                />
-              </div>
-            </div>
-            <Button type="submit" className="w-full md:w-auto text-base font-semibold" size="lg">
-              <Sparkles className="mr-2 h-5 w-5" /> Calculate Plan
-            </Button>
-          </form>
+            <Tabs defaultValue="spacing-calculator">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="spacing-calculator">Spacing Calculator</TabsTrigger>
+                <TabsTrigger value="material-estimator">Material Estimator</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="spacing-calculator" className="pt-6">
+                <form onSubmit={handleSpacingCalculate} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                    <div className="space-y-2">
+                      <Label htmlFor="pipe-length" className="text-base font-medium">Pipe Length</Label>
+                      <Input
+                        id="pipe-length"
+                        type="number"
+                        placeholder="e.g., 6000"
+                        value={pipeLength}
+                        onChange={(e) => setPipeLength(e.target.value)}
+                        className="text-base"
+                        step="any"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unit" className="text-base font-medium">Unit</Label>
+                      <Select value={unit} onValueChange={setUnit}>
+                        <SelectTrigger id="unit" className="w-full text-base">
+                          <SelectValue placeholder="Select unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mm">Millimeters (mm)</SelectItem>
+                          <SelectItem value="cm">Centimeters (cm)</SelectItem>
+                          <SelectItem value="m">Meters (m)</SelectItem>
+                          <SelectItem value="in">Inches (in)</SelectItem>
+                          <SelectItem value="ft">Adi (ft)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="total-rods" className="text-base font-medium">Total Welding Rods</Label>
+                      <Input
+                        id="total-rods"
+                        type="number"
+                        placeholder="e.g., 12"
+                        value={totalRods}
+                        onChange={(e) => setTotalRods(e.target.value)}
+                        className="text-base"
+                        step="1"
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full md:w-auto text-base font-semibold" size="lg">
+                    <Sparkles className="mr-2 h-5 w-5" /> Calculate Spacing
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="material-estimator" className="pt-6">
+                <form onSubmit={handleEstimationCalculate} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                    <div className="space-y-2">
+                      <Label htmlFor="joint-length" className="text-base font-medium">Joint Length (mm)</Label>
+                      <Input
+                        id="joint-length"
+                        type="number"
+                        placeholder="e.g., 1000"
+                        value={jointLength}
+                        onChange={(e) => setJointLength(e.target.value)}
+                        className="text-base"
+                        step="any"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="material-thickness" className="text-base font-medium">Material Thickness (mm)</Label>
+                      <Input
+                        id="material-thickness"
+                        type="number"
+                        placeholder="e.g., 10"
+                        value={materialThickness}
+                        onChange={(e) => setMaterialThickness(e.target.value)}
+                        className="text-base"
+                        step="any"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="joint-type" className="text-base font-medium">Joint Type</Label>
+                      <Select value={jointType} onValueChange={setJointType}>
+                        <SelectTrigger id="joint-type" className="w-full text-base">
+                          <SelectValue placeholder="Select joint type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="butt">Butt Joint</SelectItem>
+                          <SelectItem value="fillet">Fillet Joint</SelectItem>
+                          <SelectItem value="lap">Lap Joint</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full md:w-auto text-base font-semibold" size="lg">
+                    <SlidersHorizontal className="mr-2 h-5 w-5" /> Calculate Estimate
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
         </CardContent>
       </Card>
 
-      {result && (
-        <div ref={resultsRef} className="space-y-8 p-4 bg-background">
+      <div ref={resultsRef} className="space-y-8 p-4 bg-background">
+        {(spacingResult || estimationResult) && (
             <div className="flex flex-wrap gap-4 justify-between items-center">
-                <CardTitle>Welding Plan Results</CardTitle>
+                <CardTitle>Calculation Results</CardTitle>
                 <div className="flex gap-2">
                     <Button onClick={handleShare} disabled={isSharing} variant="outline">
                         <Share2 className="mr-2 h-5 w-5" />
@@ -282,26 +402,54 @@ export function WeldingCalculator() {
                     </Button>
                 </div>
             </div>
+        )}
+
+        {spacingResult && (
+          <div className="space-y-8">
+            <Card className="w-full bg-primary/10 border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-primary">
+                  <Ruler className="h-6 w-6" />
+                  Spacing Result
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  Each rod covers an average of <span className="text-accent font-extrabold">{spacingResult.coverage % 1 === 0 ? spacingResult.coverage : spacingResult.coverage.toFixed(2)} {unit}</span>.
+                </p>
+              </CardContent>
+            </Card>
+            <ResultsTable plan={spacingResult.plan} unit={unit} />
+          </div>
+        )}
+
+        {estimationResult && (
+          <div className="space-y-8">
             <Card className="w-full bg-primary/10 border-primary/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-primary">
-                        <Ruler className="h-6 w-6" />
-                        Calculation Result
+                        <SlidersHorizontal className="h-6 w-6" />
+                        Material Estimation
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     <p className="text-2xl font-bold">
-                        Each rod covers an average of <span className="text-accent font-extrabold">{result.coverage % 1 === 0 ? result.coverage : result.coverage.toFixed(2)} {unit}</span>.
+                        Estimated Rods Needed: <span className="text-accent font-extrabold">{estimationResult.rods}</span>
+                    </p>
+                    <p className="text-2xl font-bold flex items-center gap-2">
+                       <Clock className="h-6 w-6" /> Estimated Welding Time: <span className="text-accent font-extrabold">{estimationResult.time.toFixed(1)} minutes</span>
                     </p>
                 </CardContent>
             </Card>
+          </div>
+        )}
+      </div>
 
-          <ResultsTable plan={result.plan} unit={unit} />
-        </div>
-      )}
       <footer className="text-center text-sm text-muted-foreground py-4">
         <p>Developed by Asifulla S</p>
       </footer>
     </div>
   )
 }
+
+    
