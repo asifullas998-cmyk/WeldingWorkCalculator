@@ -25,7 +25,7 @@ import { ResultsTable } from "./results-table"
 import { ResultsChart } from "./results-chart"
 import { useToast } from "@/hooks/use-toast"
 import type { ChartConfig } from "@/components/ui/chart"
-import { Download, Ruler, Sparkles } from "lucide-react"
+import { Download, Ruler, Share2, Sparkles } from "lucide-react"
 
 type SpacingPlan = {
   rod: number
@@ -47,6 +47,7 @@ export function WeldingCalculator() {
   const [unit, setUnit] = useState("mm")
   const [result, setResult] = useState<CalculationResult | null>(null)
   const [isSaving, setIsSaving] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const { toast } = useToast()
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -164,6 +165,68 @@ export function WeldingCalculator() {
     }
   };
   
+  const handleShare = async () => {
+    if (!resultsRef.current || !result) return;
+
+    if (!navigator.share) {
+      toast({
+        variant: "destructive",
+        title: "Sharing Not Supported",
+        description: "Your browser does not support the Web Share API.",
+      });
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      const canvas = await html2canvas(resultsRef.current, {
+        scale: 2,
+        backgroundColor: null,
+      });
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+            toast({
+                variant: "destructive",
+                title: "Sharing Failed",
+                description: "Could not create image for sharing.",
+            });
+            setIsSharing(false);
+            return;
+        }
+
+        const file = new File([blob], "welding-plan.png", { type: "image/png" });
+
+        try {
+          await navigator.share({
+            title: "Welding Plan",
+            text: "Here is the welding plan I generated with WeldEase Planner.",
+            files: [file],
+          });
+        } catch (error) {
+            if (error instanceof DOMException && error.name !== 'AbortError') {
+                console.error("Error sharing:", error);
+                toast({
+                  variant: "destructive",
+                  title: "Sharing Failed",
+                  description: "There was an error trying to share the plan.",
+                });
+            }
+        } finally {
+            setIsSharing(false);
+        }
+      }, "image/png");
+
+    } catch (error) {
+      console.error("Error creating share image:", error);
+      toast({
+        variant: "destructive",
+        title: "Sharing Failed",
+        description: "Could not prepare the plan for sharing. Please try again.",
+      });
+      setIsSharing(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-4xl space-y-8">
@@ -229,12 +292,18 @@ export function WeldingCalculator() {
 
       {result && (
         <div ref={resultsRef} className="space-y-8 p-4 bg-background">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap gap-4 justify-between items-center">
                 <CardTitle>Welding Plan Results</CardTitle>
-                <Button onClick={handleSavePdf} disabled={isSaving} variant="outline">
-                    <Download className="mr-2 h-5 w-5" />
-                    {isSaving ? "Saving..." : "Save as PDF"}
-                </Button>
+                <div className="flex gap-2">
+                    <Button onClick={handleShare} disabled={isSharing} variant="outline">
+                        <Share2 className="mr-2 h-5 w-5" />
+                        {isSharing ? "Sharing..." : "Share Plan"}
+                    </Button>
+                    <Button onClick={handleSavePdf} disabled={isSaving} variant="outline">
+                        <Download className="mr-2 h-5 w-5" />
+                        {isSaving ? "Saving..." : "Save as PDF"}
+                    </Button>
+                </div>
             </div>
             <Card className="w-full bg-primary/10 border-primary/20">
                 <CardHeader>
