@@ -1,13 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ButtJointIcon, FilletJointIcon, LapJointIcon, CornerJointIcon, TJointIcon } from "@/components/joint-icons";
 
 const joints = [
   {
     name: "Butt Joint",
-    icon: <ButtJointIcon />,
+    imageUrl: "https://picsum.photos/200/200",
+    imageHint: "butt weld",
     description: "A joint between two members aligned approximately in the same plane.",
     details: {
       "Preparation": "Ensure edges are clean and properly beveled if required (for thicker materials).",
@@ -18,7 +19,8 @@ const joints = [
   },
   {
     name: "Fillet Joint",
-    icon: <FilletJointIcon />,
+    imageUrl: "https://picsum.photos/200/200",
+    imageHint: "fillet weld",
     description: "A joint where two pieces of metal are connected at a right angle, with welding on the inside corner.",
     details: {
       "Preparation": "Clean surfaces are crucial. No special edge preparation is usually needed.",
@@ -29,7 +31,8 @@ const joints = [
   },
   {
     name: "Lap Joint",
-    icon: <LapJointIcon />,
+    imageUrl: "https://picsum.photos/200/200",
+    imageHint: "lap weld",
     description: "A joint between two overlapping members.",
     details: {
       "Preparation": "Surfaces must be clean. Ensure the plates are in close contact.",
@@ -40,7 +43,8 @@ const joints = [
   },
    {
     name: "Corner Joint",
-    icon: <CornerJointIcon />,
+    imageUrl: "https://picsum.photos/200/200",
+    imageHint: "corner weld",
     description: "A joint between two members located at an angle to one another at a corner.",
     details: {
         "Preparation": "Clean the edges thoroughly. Beveling may be needed for thick sections.",
@@ -51,7 +55,8 @@ const joints = [
   },
   {
     name: "T-Joint (Tee Joint)",
-    icon: <TJointIcon />,
+    imageUrl: "https://picsum.photos/200/200",
+    imageHint: "tee weld",
     description: "A joint between two members located at right angles to each other in the form of a 'T'.",
     details: {
         "Preparation": "Ensure the surfaces are clean. The vertical member's edge should be straight.",
@@ -77,8 +82,15 @@ export function JointsGuide() {
             <AccordionItem value={`item-${index}`} key={joint.name}>
               <AccordionTrigger className="text-xl font-semibold hover:no-underline">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 flex-shrink-0 bg-primary/10 rounded-md flex items-center justify-center">
-                    {joint.icon}
+                  <div className="w-16 h-16 flex-shrink-0 bg-primary/10 rounded-md flex items-center justify-center overflow-hidden">
+                    <Image 
+                      src={joint.imageUrl}
+                      alt={`${joint.name} diagram`}
+                      width={64}
+                      height={64}
+                      className="object-cover"
+                      data-ai-hint={joint.imageHint}
+                    />
                   </div>
                   <span>{joint.name}</span>
                 </div>
