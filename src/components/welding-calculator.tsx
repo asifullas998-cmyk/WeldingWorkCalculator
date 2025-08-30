@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
+import jsPDF from "jspdf"
+import html2canvas from "html2canvas"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -23,8 +25,7 @@ import { ResultsTable } from "./results-table"
 import { ResultsChart } from "./results-chart"
 import { useToast } from "@/hooks/use-toast"
 import type { ChartConfig } from "@/components/ui/chart"
-import { Separator } from "@/components/ui/separator"
-import { Ruler, Sparkles } from "lucide-react"
+import { Download, Ruler, Sparkles } from "lucide-react"
 
 type SpacingPlan = {
   rod: number
@@ -45,7 +46,9 @@ export function WeldingCalculator() {
   const [totalRods, setTotalRods] = useState("")
   const [unit, setUnit] = useState("mm")
   const [result, setResult] = useState<CalculationResult | null>(null)
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast()
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const unitConversions: { [key: string]: number } = {
     mm: 1,
@@ -131,6 +134,36 @@ export function WeldingCalculator() {
       totalLength: length
     })
   }
+  
+  const handleSavePdf = async () => {
+    if (!resultsRef.current || !result) return;
+    setIsSaving(true);
+  
+    try {
+      const canvas = await html2canvas(resultsRef.current, {
+        scale: 2,
+        backgroundColor: null, 
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "px",
+        format: [canvas.width, canvas.height],
+      });
+      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      pdf.save("welding-plan.pdf");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        variant: "destructive",
+        title: "PDF Generation Failed",
+        description: "Could not save the plan as a PDF. Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
 
   return (
     <div className="w-full max-w-4xl space-y-8">
@@ -195,7 +228,14 @@ export function WeldingCalculator() {
       </Card>
 
       {result && (
-        <div className="space-y-8">
+        <div ref={resultsRef} className="space-y-8 p-4 bg-background">
+            <div className="flex justify-between items-center">
+                <CardTitle>Welding Plan Results</CardTitle>
+                <Button onClick={handleSavePdf} disabled={isSaving} variant="outline">
+                    <Download className="mr-2 h-5 w-5" />
+                    {isSaving ? "Saving..." : "Save as PDF"}
+                </Button>
+            </div>
             <Card className="w-full bg-primary/10 border-primary/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-primary">
